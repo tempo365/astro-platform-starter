@@ -37,3 +37,52 @@ import Layout from '../layouts/Layout.astro';
 
   carregarTempo();
 </script>
+
+<script>
+  async function carregarTempo() {
+    const elemento = document.createElement("section");
+    elemento.style = "text-align:center; background:white; color:#333; padding:40px 20px; font-size:1.2rem;";
+    elemento.innerHTML = "<h2>Previsão Meteorológica</h2> A obter localização...";
+    document.body.appendChild(elemento);
+
+    // 1️⃣ Obter a localização atual do utilizador
+    if (!navigator.geolocation) {
+      elemento.innerHTML = "Geolocalização não suportada neste dispositivo.";
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(async (pos) => {
+      const lat = pos.coords.latitude.toFixed(2);
+      const lon = pos.coords.longitude.toFixed(2);
+
+      // 2️⃣ Buscar o nome da cidade via API reversa
+      const localResp = await fetch(`https://geocode.maps.co/reverse?lat=${lat}&lon=${lon}`);
+      const localData = await localResp.json();
+      const cidade = localData.address?.city || localData.address?.town || localData.address?.village || "Localização desconhecida";
+
+      // 3️⃣ Buscar dados meteorológicos
+      const resposta = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`);
+      const dados = await resposta.json();
+      const tempo = dados.current_weather;
+
+      // 4️⃣ Escolher ícone com base no código do tempo
+      let icone = "☀️";
+      if (tempo.weathercode >= 45 && tempo.weathercode <= 48) icone = "🌫️";
+      else if (tempo.weathercode >= 51 && tempo.weathercode <= 67) icone = "🌦️";
+      else if (tempo.weathercode >= 71 && tempo.weathercode <= 77) icone = "❄️";
+      else if (tempo.weathercode >= 80 && tempo.weathercode <= 99) icone = "🌧️";
+
+      // 5️⃣ Mostrar previsão no ecrã
+      elemento.innerHTML = `
+        <h2>Previsão Meteorológica</h2>
+        📍 <strong>${cidade}</strong><br><br>
+        ${icone} <strong>${tempo.temperature}°C</strong><br>
+        💨 Vento: ${tempo.windspeed} km/h
+      `;
+    }, (erro) => {
+      elemento.innerHTML = "⚠️ Não foi possível obter a localização.";
+    });
+  }
+
+  carregarTempo();
+</script>
