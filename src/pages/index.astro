@@ -16,3 +16,24 @@ import Layout from '../layouts/Layout.astro';
     <img src="/favicon.ico" alt="Tempo365 logo" style="margin-top: 40px; width: 120px;" />
   </section>
 </Layout>
+
+<script>
+  async function carregarTempo() {
+    try {
+      const resposta = await fetch("https://api.open-meteo.com/v1/forecast?latitude=38.72&longitude=-9.14&current_weather=true");
+      const dados = await resposta.json();
+      const tempo = dados.current_weather;
+      document.body.innerHTML += `
+        <section style="text-align:center; background:white; color:#333; padding:40px 20px; font-size:1.2rem;">
+          <h2>Previsão Meteorológica</h2>
+          🌡️ Temperatura: ${tempo.temperature}°C<br>
+          💨 Vento: ${tempo.windspeed} km/h
+        </section>
+      `;
+    } catch (erro) {
+      console.error("Erro ao carregar previsão:", erro);
+    }
+  }
+
+  carregarTempo();
+</script>
