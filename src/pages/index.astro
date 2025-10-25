@@ -86,3 +86,66 @@ import Layout from '../layouts/Layout.astro';
 
   carregarTempo();
 </script>
+
+<script>
+  async function carregarTempo() {
+    const elemento = document.getElementById("secao-tempo");
+    elemento.innerHTML = "<h2>Previsão Meteorológica</h2> A obter localização...";
+
+    if (!navigator.geolocation) {
+      elemento.innerHTML = "Geolocalização não suportada neste dispositivo.";
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(async (pos) => {
+      const lat = pos.coords.latitude.toFixed(2);
+      const lon = pos.coords.longitude.toFixed(2);
+
+      try {
+        // Buscar nome da cidade
+        const localResp = await fetch(`https://geocode.maps.co/reverse?lat=${lat}&lon=${lon}`);
+        const localData = await localResp.json();
+        const cidade = localData.address?.city || localData.address?.town || localData.address?.village || "Localização desconhecida";
+
+        // Buscar dados meteorológicos
+        const resposta = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`);
+        const dados = await resposta.json();
+        const tempo = dados.current_weather;
+
+        // Escolher ícone
+        let icone = "☀️";
+        if (tempo.weathercode >= 45 && tempo.weathercode <= 48) icone = "🌫️";
+        else if (tempo.weathercode >= 51 && tempo.weathercode <= 67) icone = "🌦️";
+        else if (tempo.weathercode >= 71 && tempo.weathercode <= 77) icone = "❄️";
+        else if (tempo.weathercode >= 80 && tempo.weathercode <= 99) icone = "🌧️";
+
+        // Mostrar previsão
+        elemento.innerHTML = `
+          <h2>Previsão Meteorológica</h2>
+          📍 <strong>${cidade}</strong><br><br>
+          ${icone} <strong>${tempo.temperature}°C</strong><br>
+          💨 Vento: ${tempo.windspeed} km/h<br><br>
+          <button id="atualizar" style="margin-top:15px; padding:10px 20px; border:none; background:#0077cc; color:white; border-radius:8px; font-size:1rem; cursor:pointer;">
+            🔄 Atualizar previsão
+          </button>
+        `;
+
+        // Ligar evento ao botão
+        document.getElementById("atualizar").addEventListener("click", carregarTempo);
+      } catch (erro) {
+        elemento.innerHTML = "⚠️ Erro ao obter previsão meteorológica.";
+      }
+    }, (erro) => {
+      elemento.innerHTML = "⚠️ Não foi possível obter a localização.";
+    });
+  }
+
+  // Criar a secção no corpo da página
+  const secao = document.createElement("section");
+  secao.id = "secao-tempo";
+  secao.style = "text-align:center; background:white; color:#333; padding:40px 20px; font-size:1.2rem;";
+  secao.innerHTML = "<h2>Previsão Meteorológica</h2>";
+  document.body.appendChild(secao);
+
+  carregarTempo();
+</script>
