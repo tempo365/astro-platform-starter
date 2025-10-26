@@ -1,0 +1,20 @@
+{
+  "name": "Tempo 365 Meteorologia & Clima",
+  "short_name": "Tempo365",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FF7A00",
+  "theme_color": "#FF7A00",
+  "icons": [
+    {
+      "src": "/icon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    }
+  ]
+}
